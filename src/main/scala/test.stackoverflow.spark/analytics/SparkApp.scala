@@ -13,21 +13,50 @@ object SparkApp extends App{
 
   val spark = Contexts.SPARK
 
-  val fullDF = spark.read.json(inputFile)
+  val inputDataType = args(0)
 
-  import org.apache.spark.sql.functions._
+  inputDataType match {
 
-  val items = fullDF.select(explode(col("items")))
+    case "json" =>
 
-  items.printSchema()
+      // Read the Json file.
+      val fullDF = spark.read.json(inputFile)
 
-  //Task 1: find the answers by no. of vote with question_id and answer_owner
+      import org.apache.spark.sql.functions._
 
-  val selectOrderedDF = items.select(col("col.answer_id") as("answer"),col("col.score") as("answer_score"),col("col.question_id") as("question"),col("col.owner.user_id") as("owner"))
-      .orderBy(desc("answer_score"))
-  selectOrderedDF.printSchema()
+      val items = fullDF.select(explode(col("items")))
 
-  selectOrderedDF.show()
+      items.printSchema()
 
+      //Task 1: find the answers by no. of vote with question_id and answer_owner
+
+      val selectOrderedDF = items.select(col("col.answer_id") as("answer"),col("col.score") as("answer_score"),col("col.question_id") as("question"),col("col.owner.user_id") as("owner"))
+        .orderBy(desc("answer_score"))
+      selectOrderedDF.printSchema()
+
+      selectOrderedDF.show()
+
+
+    case "xml" =>
+    // Read the xml file.
+      val inputFile = GetAllProperties.readPropertyFile get "XML_INPUT_DATA" getOrElse("#") replace("<USER_NAME>",userName)
+
+      val xmlDF = spark.read
+        .format("com.databricks.spark.xml")
+        .option("rowTag", "badges")
+        .load(inputFile)
+
+
+      xmlDF.createOrReplaceGlobalTempView("XML_DATA")
+
+      xmlDF.sqlContext.sql("select * from XML_DATA where UserId='5240'").printSchema()
+
+      //xmlDF.printSchema()
+  }
+
+  // TO let SPARK UI in active state.
+  Thread.sleep(86400000)
+
+  Contexts.stopContext
 
 }

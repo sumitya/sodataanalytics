@@ -1,5 +1,6 @@
 target/
 .idea/
 spark-warehouse/
-src/main/resources/json_output/
+src/main/resources/json_data/
+src/main/resources/xml_data/
 src/test/

@@ -47,6 +47,15 @@
       <version>2.4.0</version>
     </dependency>
 
+    <!-- https://mvnrepository.com/artifact/com.databricks/spark-xml -->
+    <dependency>
+      <groupId>com.databricks</groupId>
+      <artifactId>spark-xml_2.12</artifactId>
+      <version>0.6.0</version>
+    </dependency>
+
+
+
     <!-- https://mvnrepository.com/artifact/net.databinder.dispatch/dispatch-core -->
     <dependency>
       <groupId>net.databinder.dispatch</groupId>

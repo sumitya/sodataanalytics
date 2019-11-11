@@ -8,7 +8,10 @@ object Contexts {
   val SPARK:SparkSession = SparkSession
     .builder
     .appName("SODataAnalytics")
-    .master("local")
+    .master("local[2]")
+    .config("spark.driver.memory", "6g")
+    .config("spark.memory.offHeap.enabled",true)
+    .config("spark.memory.offHeap.size","1g")
     .getOrCreate()
 
   // SQL_CONTEXT is created as soon as it is declared here.
