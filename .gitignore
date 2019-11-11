@@ -1,0 +1,5 @@
+target/
+.idea/
+spark-warehouse/
+src/main/resources/json_output/
+src/test/
