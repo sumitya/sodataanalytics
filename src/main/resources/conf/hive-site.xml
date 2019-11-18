@@ -1,0 +1,5 @@
+<property>
+    <name>hive.exec.scratchdir</name>
+    <value>C:/tmp/hive/</value>
+    <description>Scratch space for Hive jobs</description>
+</property>
