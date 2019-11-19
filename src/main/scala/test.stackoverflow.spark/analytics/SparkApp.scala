@@ -1,5 +1,7 @@
 package test.stackoverflow.spark.analytics
 
+import java.util
+
 import test.stackoverflow.spark.utils.{Contexts, GetAllProperties, ListFilesUnderDir}
 import org.apache.spark.sql.functions._
 import org.apache.log4j.Logger
@@ -13,13 +15,12 @@ object SparkApp extends App{
   Logger.getLogger("org").setLevel(Level.OFF)
   Logger.getLogger("com").setLevel(Level.OFF)
 
+  //get the current logged in user.
   val userName = System.getProperty("user.name")
 
   val winutilpath = GetAllProperties.readPropertyFile get "WINUTILPATH" getOrElse("#") replace("<USER_NAME>",userName)
 
   System.setProperty("hadoop.home.dir", winutilpath)
-
-  //get the current logged in user.
 
   val inputFile = GetAllProperties.readPropertyFile get "ANS_JSON_OUTPUT_PATH" getOrElse("#") replace("<USER_NAME>",userName)
 
@@ -32,10 +33,9 @@ object SparkApp extends App{
     case "json" =>
 
       // list all the files under directory.
-
+      //Option[Array[Path]]
       val filesPath = new ListFilesUnderDir(spark).filesUnderDir
 
-      //Option[Array[Path]]
       filesPath.get.foreach{
         path =>
 
@@ -48,13 +48,29 @@ object SparkApp extends App{
           val viewName = path.getName.replace(".","_")
           dataFrames.createOrReplaceTempView(viewName)
 
-          //@TODO: create all the raw tables(raw data model) and insert data into these hive tables.
-/*
           val sqlContext = Contexts.SQL_CONTEXT
-          val queryString = s"CREATE TABLE IF NOT EXISTS ${viewName} row format delimited fields terminated by '|' AS select * from ${viewName} LIMIT 10"
-          sqlContext.sql("CREATE TABLE contributordeletionreasons(Description STRING,Id STRING,Name STRING) row format delimited fields terminated by '|'").show()
-          sqlContext.sql("insert overwrite table contributordeletionreasons select * from contributordeletionreasons_json")
-*/
+
+          val queryString = s"CREATE TABLE IF NOT EXISTS ${viewName}_temp1 ROW FORMAT DELIMITED FIELDS TERMINATED BY ',' STORED AS TextFile AS select * from ${viewName}"
+          sqlContext.sql(queryString)
+
+          sqlContext.sql(s"select * from default.contributordeletionreasons_json_temp1 LIMIT 50").show()
+          println("=======================================================================")
+          sqlContext.sql("select * from default.contributors_json_temp1 LIMIT 50").show()
+          println("=======================================================================")
+          sqlContext.sql("select * from default.contributortypes_json_temp1 LIMIT 50").show()
+          println("=======================================================================")
+          sqlContext.sql("select * from default.doctags_json_temp1 LIMIT 50").show()
+          println("=======================================================================")
+          sqlContext.sql("select * from default.doctagversions_json_temp1 LIMIT 50").show()
+          println("=======================================================================")
+          sqlContext.sql("select * from default.examples_json_temp1 LIMIT 50").show()
+          println("=======================================================================")
+          sqlContext.sql("select * from default.topichistories_json_temp1 LIMIT 50").show()
+          println("=======================================================================")
+          sqlContext.sql("select * from default.topichistorytypes_json_temp1 LIMIT 50").show()
+          println("=======================================================================")
+          sqlContext.sql("select * from default.topics_json_temp1 LIMIT 50").show()
+          println("=======================================================================")
       }
 
       // Read the Json file.
@@ -73,7 +89,7 @@ object SparkApp extends App{
       selectOrderedDF.show()
 
     case "xml" =>
-    // Read the xml file.
+      // Read the xml file.
       val inputFile = GetAllProperties.readPropertyFile get "XML_INPUT_DATA" getOrElse("#") replace("<USER_NAME>",userName)
 
       val xmlDF = spark.read

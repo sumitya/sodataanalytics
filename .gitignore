@@ -1,6 +1,7 @@
 target/
 .idea/
 spark-warehouse/
+metastore_db/
 src/main/resources/json_data/
 src/main/resources/xml_data/
-src/test/
+src/test/java/
