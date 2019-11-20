@@ -26,6 +26,8 @@ object SparkApp extends App{
 
   val spark = Contexts.SPARK
 
+  val sqlContext = Contexts.SQL_CONTEXT
+
   val inputDataType = args(0)
 
   inputDataType match {
@@ -41,44 +43,28 @@ object SparkApp extends App{
 
           val dataFrames = spark.read.option("multiLine", true).json(path.toString)
 
-          dataFrames.printSchema()
+          //Calling the size calculator for RDD.
+          DataViewer.displayDataSize(path,dataFrames.rdd.map(_.toString()))
 
           val tblNm = path.getName.replace(".","_")
 
           val viewName = path.getName.replace(".","_")
           dataFrames.createOrReplaceTempView(viewName)
 
-          val sqlContext = Contexts.SQL_CONTEXT
-
           val queryString = s"CREATE TABLE IF NOT EXISTS ${viewName}_temp1 ROW FORMAT DELIMITED FIELDS TERMINATED BY ',' STORED AS TextFile AS select * from ${viewName}"
           sqlContext.sql(queryString)
 
-          sqlContext.sql(s"select * from default.contributordeletionreasons_json_temp1 LIMIT 50").show()
-          println("=======================================================================")
-          sqlContext.sql("select * from default.contributors_json_temp1 LIMIT 50").show()
-          println("=======================================================================")
-          sqlContext.sql("select * from default.contributortypes_json_temp1 LIMIT 50").show()
-          println("=======================================================================")
-          sqlContext.sql("select * from default.doctags_json_temp1 LIMIT 50").show()
-          println("=======================================================================")
-          sqlContext.sql("select * from default.doctagversions_json_temp1 LIMIT 50").show()
-          println("=======================================================================")
-          sqlContext.sql("select * from default.examples_json_temp1 LIMIT 50").show()
-          println("=======================================================================")
-          sqlContext.sql("select * from default.topichistories_json_temp1 LIMIT 50").show()
-          println("=======================================================================")
-          sqlContext.sql("select * from default.topichistorytypes_json_temp1 LIMIT 50").show()
-          println("=======================================================================")
-          sqlContext.sql("select * from default.topics_json_temp1 LIMIT 50").show()
-          println("=======================================================================")
       }
+
+      //Display the sample data from Hive tables.
+      DataViewer.displayRawDocData(sqlContext)
 
       // Read the Json file.
       val fullDF = spark.read.json(inputFile)
 
       val items = fullDF.select(explode(col("items")))
 
-      items.printSchema()
+     // items.printSchema()
 
       //Task 1: find the answers by no. of vote with question_id and answer_owner
 
