@@ -1,14 +1,12 @@
 package test.stackoverflow.spark.analytics
 
-import java.util
-
 import test.stackoverflow.spark.utils.{Contexts, GetAllProperties, ListFilesUnderDir}
 import org.apache.spark.sql.functions._
 import org.apache.log4j.Logger
 import org.apache.log4j.Level
+import scala.io.Source
 
-
-object SparkApp extends App{
+object SparkApp extends App {
 
   println("Hello World!!!!")
 
@@ -16,67 +14,64 @@ object SparkApp extends App{
   Logger.getLogger("com").setLevel(Level.OFF)
 
   //get the current logged in user.
-  val userName = System.getProperty("user.name")
 
-  val winutilpath = GetAllProperties.readPropertyFile get "WINUTILPATH" getOrElse("#") replace("<USER_NAME>",userName)
+  private val userName = System.getProperty("user.name")
 
+  //This is used for local development only.
+  val winutilpath = GetAllProperties.readPropertyFile get "WINUTILPATH" getOrElse ("#") replace("<USER_NAME>", userName)
   System.setProperty("hadoop.home.dir", winutilpath)
 
-  val inputFile = GetAllProperties.readPropertyFile get "ANS_JSON_OUTPUT_PATH" getOrElse("#") replace("<USER_NAME>",userName)
+  private val hqlFilesPath = GetAllProperties.readPropertyFile get "HQL_FILES" getOrElse ("#") replace("<USER_NAME>", userName)
 
-  val spark = Contexts.SPARK
+  private val spark = Contexts.SPARK
 
-  val sqlContext = Contexts.SQL_CONTEXT
+  private val sqlContext = Contexts.SQL_CONTEXT
 
-  val inputDataType = args(0)
+  private var dataViewer: DataViewer = _
+
+  /* This App have 3 params::
+   1. Format of data read i.e. json/xml.
+   2. hqlfileName.
+   3. category of data answers/documentation.
+   */
+
+  private val inputDataType = args(0)
+
+  private val hqlFileName = args(1)
+
+  private val dataCategory = args(2)
 
   inputDataType match {
 
     case "json" =>
 
       // list all the files under directory.
-      //Option[Array[Path]]
-      val filesPath = new ListFilesUnderDir(spark).filesUnderDir
 
-      filesPath.get.foreach{
-        path =>
+      //Return:Option[Array[Path]]
+      val filesPath = new ListFilesUnderDir(spark,dataCategory).filesUnderDir
 
-          val dataFrames = spark.read.option("multiLine", true).json(path.toString)
+      val queryString = new StringBuilder
 
-          //Calling the size calculator for RDD.
-          DataViewer.displayDataSize(path,dataFrames.rdd.map(_.toString()))
+      for (line <- Source.fromFile(hqlFilesPath + hqlFileName.toString).getLines) {
 
-          val tblNm = path.getName.replace(".","_")
-
-          val viewName = path.getName.replace(".","_")
-          dataFrames.createOrReplaceTempView(viewName)
-
-          val queryString = s"CREATE TABLE IF NOT EXISTS ${viewName}_temp1 ROW FORMAT DELIMITED FIELDS TERMINATED BY ',' STORED AS TextFile AS select * from ${viewName}"
-          sqlContext.sql(queryString)
+        queryString append (line)
 
       }
 
-      //Display the sample data from Hive tables.
-      DataViewer.displayRawDocData(sqlContext)
+      // Document
+      //Create Tables and write to files, one time activity.
+      //DocumentDataFrame.createTablesAndWriteToFile(filesPath,spark)
 
-      // Read the Json file.
-      val fullDF = spark.read.json(inputFile)
+      //Query the table
+      DocumentDataFrame.queryDF(sqlContext, queryString.toString)
 
-      val items = fullDF.select(explode(col("items")))
-
-     // items.printSchema()
-
-      //Task 1: find the answers by no. of vote with question_id and answer_owner
-
-      val selectOrderedDF = items.select(col("col.answer_id") as("answer"),col("col.score") as("answer_score"),col("col.question_id") as("question"),col("col.owner.user_id") as("owner"))
-        .orderBy(desc("answer_score"))
-      selectOrderedDF.printSchema()
-
-      selectOrderedDF.show()
+      // Answers
+      //AnswersDataFrame.createTablesAndWriteToFile(filesPath, spark)
+      //AnswersDataFrame.queryDF(sqlContext, queryString.toString)
 
     case "xml" =>
       // Read the xml file.
-      val inputFile = GetAllProperties.readPropertyFile get "XML_INPUT_DATA" getOrElse("#") replace("<USER_NAME>",userName)
+      val inputFile = GetAllProperties.readPropertyFile get "XML_INPUT_DATA" getOrElse ("#") replace("<USER_NAME>", userName)
 
       val xmlDF = spark.read
         .format("com.databricks.spark.xml")

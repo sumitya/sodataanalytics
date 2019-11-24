@@ -2,43 +2,10 @@ package test.stackoverflow.spark.analytics
 
 import org.apache.spark.rdd.RDD
 import org.apache.spark.sql.SQLContext
-
 import org.apache.hadoop.fs.Path
 
-object DataViewer {
-
-  def displayRawDocData(sqlContext:SQLContext) = {
-
-    println("contributordeletionreasons_json_temp1 ")
-    sqlContext.sql(s"select * from default.contributordeletionreasons_json_temp1 LIMIT 50").show()
-    println("=======================================================================")
-    println("contributors_json_temp1 ")
-    sqlContext.sql("select * from default.contributors_json_temp1 LIMIT 50").show()
-    println("=======================================================================")
-    println("contributortypes_json_temp1 ")
-    sqlContext.sql("select * from default.contributortypes_json_temp1 LIMIT 50").show()
-    println("=======================================================================")
-    println("doctags_json_temp1 ")
-    sqlContext.sql("select * from default.doctags_json_temp1 LIMIT 50").show()
-    println("=======================================================================")
-    println("doctagversions_json_temp1 ")
-    sqlContext.sql("select * from default.doctagversions_json_temp1 LIMIT 50").show()
-    println("=======================================================================")
-    println("examples_json_temp1 ")
-    sqlContext.sql("select * from default.examples_json_temp1 LIMIT 50").show()
-    println("=======================================================================")
-    println("topichistories_json_temp1 ")
-    sqlContext.sql("select * from default.topichistories_json_temp1 LIMIT 50").show()
-    println("=======================================================================")
-    println("topichistorytypes_json_temp1 ")
-    sqlContext.sql("select * from default.topichistorytypes_json_temp1 LIMIT 50").show()
-    println("=======================================================================")
-    println("topics_json_temp1 ")
-    sqlContext.sql("select * from default.topics_json_temp1 LIMIT 50").show()
-    println("=======================================================================")
-
-  }
-
+//made the param private for preventing getters and setters from being generated.
+class DataViewer(private val sqlContext:SQLContext) {
 
   def displayDataSize(path:Path,rdd: RDD[String]) {
 
@@ -57,5 +24,4 @@ object DataViewer {
     f"${bytes/ divisor}%.1f ${pre}"
 
   }
-
 }

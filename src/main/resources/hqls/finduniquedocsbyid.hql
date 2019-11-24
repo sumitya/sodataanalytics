@@ -1,0 +1,1 @@
+select distinct(Id), Tag from default.doctags_json_temp1 order by Id
