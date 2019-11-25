@@ -1,1 +1,1 @@
-select * from default.contributordeletionreasons_json_temp1 LIMIT 50
+select col._Class,col._Date,col._Id,col._Name,col._TagBased,col._UserId,col._VALUE from default.badges_small_xml_temp1 LIMIT 50

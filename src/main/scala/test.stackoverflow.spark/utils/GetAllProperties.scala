@@ -14,7 +14,7 @@ object GetAllProperties {
 
         val userName = System.getProperty("user.name")
 
-        prop.load(new FileInputStream(s"C://Users//${userName}//intelliJProjects//sodataanalytics//src//main//resources//app.properties"))
+        prop.load(new FileInputStream(s"C://users//${userName}//intelliJProjects//sodataanalytics//src//main//resources//app.properties"))
 
         prop.entrySet().asScala.foreach {
           entry => {

@@ -1,0 +1,1 @@
+select count(col._Name) CNT,col._Name from default.badges_small_xml_temp1 group by col._Name order by CNT desc

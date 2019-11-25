@@ -4,14 +4,16 @@ import test.stackoverflow.spark.utils.{Contexts, GetAllProperties, ListFilesUnde
 import org.apache.spark.sql.functions._
 import org.apache.log4j.Logger
 import org.apache.log4j.Level
+import org.apache.spark.sql.SQLContext
+
 import scala.io.Source
 
 object SparkApp extends App {
 
   println("Hello World!!!!")
 
-  Logger.getLogger("org").setLevel(Level.OFF)
-  Logger.getLogger("com").setLevel(Level.OFF)
+  Logger.getLogger("org").setLevel(Level.INFO)
+  Logger.getLogger("com").setLevel(Level.INFO)
 
   //get the current logged in user.
 
@@ -35,35 +37,35 @@ object SparkApp extends App {
    3. category of data answers/documentation.
    */
 
-  private val inputDataType = args(0)
+  private val datFormatCategory = args(0)
 
   private val hqlFileName = args(1)
 
   private val dataCategory = args(2)
 
-  inputDataType match {
+  datFormatCategory match {
 
     case "json" =>
 
       // list all the files under directory.
-
-      //Return:Option[Array[Path]]
-      val filesPath = new ListFilesUnderDir(spark,dataCategory).filesUnderDir
+      //Option[Array[Path]]
+      val filesPath = new ListFilesUnderDir(spark,datFormatCategory,dataCategory).filesUnderDir
 
       val queryString = new StringBuilder
 
       for (line <- Source.fromFile(hqlFilesPath + hqlFileName.toString).getLines) {
 
+        //Building String
         queryString append (line)
 
       }
 
       // Document
       //Create Tables and write to files, one time activity.
-      //DocumentDataFrame.createTablesAndWriteToFile(filesPath,spark)
+      DocumentDataFrame.createTablesAndWriteToFile(filesPath,spark)
 
       //Query the table
-      DocumentDataFrame.queryDF(sqlContext, queryString.toString)
+      //DocumentDataFrame.queryDF(sqlContext, queryString.toString)
 
       // Answers
       //AnswersDataFrame.createTablesAndWriteToFile(filesPath, spark)
@@ -71,26 +73,27 @@ object SparkApp extends App {
 
     case "xml" =>
       // Read the xml file.
-      val inputFile = GetAllProperties.readPropertyFile get "XML_INPUT_DATA" getOrElse ("#") replace("<USER_NAME>", userName)
 
-      val xmlDF = spark.read
-        .format("com.databricks.spark.xml")
-        .option("rowTag", "badges")
-        .load(inputFile)
+      val filesPath = new ListFilesUnderDir(spark,datFormatCategory,dataCategory).filesUnderDir
 
-      xmlDF.printSchema()
+      val queryString = new StringBuilder
 
-      xmlDF.show()
+      for (line <- Source.fromFile(hqlFilesPath + hqlFileName.toString).getLines) {
 
-      val allRowItems = xmlDF.select(explode(col("row")))
+        //Building String
+        queryString append (line)
 
-      allRowItems.printSchema()
+      }
 
-      allRowItems.show()
+      sqlContext.setConf("spark.sql.shuffle.partitions","40")
 
-      xmlDF.registerTempTable("XML_DATA")
+      //BadgesDataFrame.createTablesAndWriteToFile(filesPath,spark)
+      //Query the table
+      //BadgesDataFrame.queryDF(sqlContext, queryString.toString)
 
-      val sqlcontext = Contexts.SQL_CONTEXT
+      //User
+      UsersDataFrame.queryDF(sqlContext,queryString.toString())
+
 
   }
 

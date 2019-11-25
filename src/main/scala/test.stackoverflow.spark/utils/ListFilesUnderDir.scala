@@ -3,7 +3,7 @@ package test.stackoverflow.spark.utils
 import org.apache.hadoop.fs.{Hdfs, LocalFileSystem, Path}
 import org.apache.spark.sql.SparkSession
 
-class ListFilesUnderDir(spark: SparkSession,dataCategory:String) {
+class ListFilesUnderDir(spark: SparkSession,datFormatCategory:String,dataCategory:String) {
 
   var pathString: String = _
   var allFiles: Option[Array[Path]] = _
@@ -12,7 +12,7 @@ class ListFilesUnderDir(spark: SparkSession,dataCategory:String) {
 
     val userName = System.getProperty("user.name")
 
-    val inputDir = GetAllProperties.readPropertyFile get "JSON_OUTPUT_PATH" getOrElse ("#") replace("<USER_NAME>", userName)
+    val inputDir = GetAllProperties.readPropertyFile get datFormatCategory.toUpperCase+"_OUTPUT_PATH" getOrElse ("#") replace("<USER_NAME>", userName)
 
     val fs = org.apache.hadoop.fs.FileSystem.get(spark.sparkContext.hadoopConfiguration)
 

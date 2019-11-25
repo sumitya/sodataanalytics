@@ -12,7 +12,6 @@ object AnswersDataFrame extends DataFrameOperations {
 
     sqlContext.sql(queryString).show(10000)
 
-
   }
 
   override def createTablesAndWriteToFile(pathArray: Option[Array[Path]], spark: SparkSession): Unit = {
@@ -28,7 +27,7 @@ object AnswersDataFrame extends DataFrameOperations {
 
         val viewName = path.getName.replace(".", "_")
 
-        writeDFToFile(dataFrame, viewName: String)
+        writeDFToFile(items, viewName: String)
 
         items.createOrReplaceTempView(viewName)
 
